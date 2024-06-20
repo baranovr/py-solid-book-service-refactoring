@@ -1,73 +1,61 @@
 """
-Liskov substitution
+Interface segregation
 """
 from abc import ABC, abstractmethod
 import json
 import xml.etree.ElementTree as ET
 
 
-class DisplayTypeBook(ABC):
+class DisplayBook(ABC):
     @abstractmethod
-    def display_type_book(self, content):
+    def display(self, content):
         pass
 
 
-class PrintBookContent(ABC):
+class PrintBook(ABC):
     @abstractmethod
-    def print_book_content(self, content):
+    def print(self, title, content):
         pass
 
 
 class SerializeBook(ABC):
     @abstractmethod
-    def serialize_book(self, content):
+    def serialize(self, title, content):
         pass
 
 
-class DisplayConsoleBook(DisplayTypeBook):
-    def display_type_book(self, content):
+class DisplayConsole(DisplayBook):
+    def display(self, content):
         print(content)
 
 
-class DisplayReverseBook(DisplayTypeBook):
-    def display_type_book(self, content):
+class DisplayReverse(DisplayBook):
+    def display(self, content):
         print(content[::-1])
 
 
-class PrintContentConsoleBook(PrintBookContent):
-    def __init__(self, title):
-        self.title = title
-
-    def print_book_content(self, content):
-        print(f"Printing the book: {self.title}...")
+class PrintConsole(PrintBook):
+    def print(self, title, content):
+        print(f"Printing the book: {title}...")
         print(content)
 
 
-class PrintContentReverseBook(PrintBookContent):
-    def __init__(self, title):
-        self.title = title
-
-    def print_book_content(self, content):
-        print(f"Printing the book in reverse: {self.title}...")
+class PrintReverse(PrintBook):
+    def print(self, title, content):
+        print(f"Printing the book in reverse: {title}...")
         print(content[::-1])
 
 
-class SerializeJsonBook(SerializeBook):
-    def __init__(self, title):
-        self.title = title
-
-    def serialize_book(self, content):
-        return json.dumps({"title": self.title, "content": content})
+class SerializeToJson(SerializeBook):
+    def serialize(self, title, content):
+        return json.dumps({"title": title, "content": content})
 
 
-class SerializeXMLBook(SerializeBook):
-    def __init__(self, title):
-        self.title = title
-
-    def serialize_book(self, content):
+class SerializeToXml(SerializeBook):
+    def serialize(self, title, content):
         root = ET.Element("book")
         title_elem = ET.SubElement(root, "title")
-        title_elem.text = self.title
+        title_elem.text = title
         content_elem = ET.SubElement(root, "content")
         content_elem.text = content
         return ET.tostring(root, encoding="unicode")
@@ -78,33 +66,33 @@ class Book:
         self.title = title
         self.content = content
 
-    def display(self, display_strategy: DisplayTypeBook):
-        display_strategy.display_type_book(self.content)
+    def display(self, display_strategy: DisplayBook):
+        display_strategy.display(self.content)
 
-    def print_book(self, print_strategy: PrintBookContent):
-        print_strategy.print_book_content(self.content)
+    def print_book(self, print_strategy: PrintBook):
+        print_strategy.print(self.title, self.content)
 
     def serialize(self, serialize_strategy: SerializeBook) -> str:
-        return serialize_strategy.serialize_book(self.content)
+        return serialize_strategy.serialize(self.title, self.content)
 
 
 def main(book: Book, commands: list[tuple[str, str]]) -> None | str:
     for cmd, method_type in commands:
         if cmd == "display":
             if method_type == "console":
-                book.display(DisplayConsoleBook())
+                book.display(DisplayConsole())
             elif method_type == "reverse":
-                book.display(DisplayReverseBook())
+                book.display(DisplayReverse())
         elif cmd == "print":
             if method_type == "console":
-                book.print_book(PrintContentConsoleBook(book.title))
+                book.print_book(PrintConsole())
             elif method_type == "reverse":
-                book.print_book(PrintContentReverseBook(book.title))
+                book.print_book(PrintReverse())
         elif cmd == "serialize":
             if method_type == "json":
-                return book.serialize(SerializeJsonBook(book.title))
+                return book.serialize(SerializeToJson())
             elif method_type == "xml":
-                return book.serialize(SerializeXMLBook(book.title))
+                return book.serialize(SerializeToXml())
 
 
 if __name__ == "__main__":
