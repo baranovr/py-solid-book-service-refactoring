@@ -1,33 +1,59 @@
 """
-Single Responsibility Principle
+Open/Closed Principle
 """
+from abc import ABC, abstractmethod
 import json
 import xml.etree.ElementTree as ET
 
 
-class DisplayTypeBook:
-    def display_console(self, content):
+class DisplayTypeBook(ABC):
+    @abstractmethod
+    def display_type_book(self, content):
+        pass
+
+
+class PrintBookContent(ABC):
+    @abstractmethod
+    def print_book_content(self, title, content):
+        pass
+
+
+class SerializeBook(ABC):
+    @abstractmethod
+    def serialize_book(self, title, content):
+        pass
+
+
+class DisplayConsoleBook(DisplayTypeBook):
+    def display_type_book(self, content):
         print(content)
 
-    def display_reverse(self, content):
+
+class DisplayReverseBook(DisplayTypeBook):
+    def display_type_book(self, content):
         print(content[::-1])
 
 
-class PrintBookContent:
-    def print_book_console(self, title, content):
+class PrintContentConsoleBook(PrintBookContent):
+
+    def print_book_content(self, title, content):
         print(f"Printing the book: {title}...")
         print(content)
 
-    def print_book_reverse(self, title, content):
+
+class PrintContentReverseBook(PrintBookContent):
+    def print_book_content(self, title, content):
         print(f"Printing the book in reverse: {title}...")
         print(content[::-1])
 
 
-class SerializeBook:
-    def serialize_json(self, title, content):
+class SerializeJsonBook(SerializeBook):
+    def serialize_book(self, title, content):
         return json.dumps({"title": title, "content": content})
 
-    def serialize_xml(self, title, content):
+
+class SerializeXMLBook(SerializeBook):
+    def serialize_book(self, title, content):
         root = ET.Element("book")
         title_elem = ET.SubElement(root, "title")
         title_elem.text = title
@@ -40,46 +66,34 @@ class Book:
     def __init__(self, title: str, content: str):
         self.title = title
         self.content = content
-        self.display_type_book = DisplayTypeBook()
-        self.print_book_content = PrintBookContent()
-        self.serialize_book = SerializeBook()
 
-    def display(self, method_type: str):
-        if method_type == "console":
-            self.display_type_book.display_console(self.content)
+    def display(self, display_strategy: DisplayTypeBook):
+        display_strategy.display_type_book(self.content)
 
-        elif method_type == "reverse":
-            self.display_type_book.display_reverse(self.content)
+    def print_book(self, print_strategy: PrintBookContent):
+        print_strategy.print_book_content(self.title, self.content)
 
-    def print_book(self, method_type: str):
-        if method_type == "console":
-            self.print_book_content.print_book_console(
-                self.title, self.content
-            )
-
-        elif method_type == "reverse":
-            self.print_book_content.print_book_reverse(
-                self.title, self.content
-            )
-
-    def serialize(self, method_type: str):
-        if method_type == "json":
-            return self.serialize_book.serialize_json(
-                self.title, self.content
-            )
-
-        elif method_type == "xml":
-            return self.serialize_book.serialize_xml(self.title, self.content)
+    def serialize(self, serialize_strategy: SerializeBook) -> str:
+        return serialize_strategy.serialize_book(self.title, self.content)
 
 
 def main(book: Book, commands: list[tuple[str, str]]) -> None | str:
     for cmd, method_type in commands:
         if cmd == "display":
-            book.display(method_type)
+            if method_type == "console":
+                book.display(DisplayConsoleBook())
+            elif method_type == "reverse":
+                book.display(DisplayReverseBook())
         elif cmd == "print":
-            book.print_book(method_type)
+            if method_type == "console":
+                book.print_book(PrintContentConsoleBook())
+            elif method_type == "reverse":
+                book.print_book(PrintContentReverseBook())
         elif cmd == "serialize":
-            return book.serialize(method_type)
+            if method_type == "json":
+                return book.serialize(SerializeJsonBook())
+            elif method_type == "xml":
+                return book.serialize(SerializeXMLBook())
 
 
 if __name__ == "__main__":
