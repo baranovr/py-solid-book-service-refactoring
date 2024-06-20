@@ -1,5 +1,5 @@
 """
-Interface segregation
+Dependency Inversion Principle
 """
 from abc import ABC, abstractmethod
 import json
@@ -62,39 +62,50 @@ class SerializeToXml(SerializeBook):
 
 
 class Book:
-    def __init__(self, title: str, content: str):
+    def __init__(
+            self,
+            title: str,
+            content: str,
+            display_strategy: DisplayBook,
+            print_strategy: PrintBook,
+            serialize_strategy: SerializeBook
+    ):
         self.title = title
         self.content = content
+        self.display_strategy = display_strategy
+        self.print_strategy = print_strategy
+        self.serialize_strategy = serialize_strategy
 
-    def display(self, display_strategy: DisplayBook):
-        display_strategy.display(self.content)
+    def display(self):
+        self.display_strategy.display(self.content)
 
-    def print_book(self, print_strategy: PrintBook):
-        print_strategy.print(self.title, self.content)
+    def print_book(self):
+        self.print_strategy.print(self.title, self.content)
 
-    def serialize(self, serialize_strategy: SerializeBook) -> str:
-        return serialize_strategy.serialize(self.title, self.content)
+    def serialize(self) -> str:
+        return self.serialize_strategy.serialize(self.title, self.content)
 
 
-def main(book: Book, commands: list[tuple[str, str]]) -> None | str:
-    for cmd, method_type in commands:
+def main(book: Book, commands: list[str]) -> None | str:
+    for cmd in commands:
         if cmd == "display":
-            if method_type == "console":
-                book.display(DisplayConsole())
-            elif method_type == "reverse":
-                book.display(DisplayReverse())
+            book.display()
         elif cmd == "print":
-            if method_type == "console":
-                book.print_book(PrintConsole())
-            elif method_type == "reverse":
-                book.print_book(PrintReverse())
+            book.print_book()
         elif cmd == "serialize":
-            if method_type == "json":
-                return book.serialize(SerializeToJson())
-            elif method_type == "xml":
-                return book.serialize(SerializeToXml())
+            return book.serialize()
 
 
 if __name__ == "__main__":
-    sample_book = Book("Sample Book", "This is some sample content.")
-    print(main(sample_book, [("display", "reverse"), ("serialize", "xml")]))
+    display_strategy = DisplayReverse()
+    print_strategy = PrintReverse()
+    serialize_strategy = SerializeToJson()
+
+    sample_book = Book(
+        "Sample Book", "This is some sample content.",
+        display_strategy,
+        print_strategy,
+        serialize_strategy
+    )
+
+    print(main(sample_book, ["display", "serialize"]))
