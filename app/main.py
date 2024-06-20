@@ -8,51 +8,51 @@ import xml.etree.ElementTree as ET
 
 class DisplayBook(ABC):
     @abstractmethod
-    def display(self, content):
+    def display(self, content: str) -> str:
         pass
 
 
 class PrintBook(ABC):
     @abstractmethod
-    def print(self, title, content):
+    def print(self, title: str, content: str) -> str:
         pass
 
 
 class SerializeBook(ABC):
     @abstractmethod
-    def serialize(self, title, content):
+    def serialize(self, title: str, content: str) -> str:
         pass
 
 
 class DisplayConsole(DisplayBook):
-    def display(self, content):
+    def display(self, content: str) -> None:
         print(content)
 
 
 class DisplayReverse(DisplayBook):
-    def display(self, content):
+    def display(self, content: str) -> None:
         print(content[::-1])
 
 
 class PrintConsole(PrintBook):
-    def print(self, title, content):
+    def print(self, title: str, content: str) -> None:
         print(f"Printing the book: {title}...")
         print(content)
 
 
 class PrintReverse(PrintBook):
-    def print(self, title, content):
+    def print(self, title: str, content: str) -> None:
         print(f"Printing the book in reverse: {title}...")
         print(content[::-1])
 
 
 class SerializeToJson(SerializeBook):
-    def serialize(self, title, content):
+    def serialize(self, title: str, content: str) -> str:
         return json.dumps({"title": title, "content": content})
 
 
 class SerializeToXml(SerializeBook):
-    def serialize(self, title, content):
+    def serialize(self, title: str, content: str) -> str:
         root = ET.Element("book")
         title_elem = ET.SubElement(root, "title")
         title_elem.text = title
@@ -69,17 +69,17 @@ class Book:
             display_strategy: DisplayBook,
             print_strategy: PrintBook,
             serialize_strategy: SerializeBook
-    ):
+    ) -> None:
         self.title = title
         self.content = content
         self.display_strategy = display_strategy
         self.print_strategy = print_strategy
         self.serialize_strategy = serialize_strategy
 
-    def display(self):
+    def display(self) -> None:
         self.display_strategy.display(self.content)
 
-    def print_book(self):
+    def print_book(self) -> None:
         self.print_strategy.print(self.title, self.content)
 
     def serialize(self) -> str:
