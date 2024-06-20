@@ -3,7 +3,7 @@ Dependency Inversion Principle
 """
 from abc import ABC, abstractmethod
 import json
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as ElTree
 
 
 class DisplayBook(ABC):
@@ -53,12 +53,12 @@ class SerializeToJson(SerializeBook):
 
 class SerializeToXml(SerializeBook):
     def serialize(self, title: str, content: str) -> str:
-        root = ET.Element("book")
-        title_elem = ET.SubElement(root, "title")
+        root = ElTree.Element("book")
+        title_elem = ElTree.SubElement(root, "title")
         title_elem.text = title
-        content_elem = ET.SubElement(root, "content")
+        content_elem = ElTree.SubElement(root, "content")
         content_elem.text = content
-        return ET.tostring(root, encoding="unicode")
+        return ElTree.tostring(root, encoding="unicode")
 
 
 class Book:
